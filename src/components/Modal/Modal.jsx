@@ -1,46 +1,62 @@
-import { Component } from 'react';
+import { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import PropTypes from 'prop-types';
 import s from './Modal.module.css';
 
 const modalRoot = document.querySelector('#modal-root');
 
-class Modal extends Component {
-  static propTypes = {
-    onClick: PropTypes.func.isRequired,
-    largeImageURL: PropTypes.string.isRequired,
-  };
+const Modal = ({ onClick, largeImageURL }) => {
+  const isFirstRender = useRef(true);
 
-  componentDidMount() {
-    window.addEventListener('keydown', this.handleKeyDown);
-  }
+  useEffect(() => {
+    if (isFirstRender.current) {
+      window.addEventListener('keydown', handleKeyDown);
+      isFirstRender.current = false;
+      return;
+    }
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  });
 
-  componentWillUnmount() {
-    window.removeEventListener('keydown', this.handleKeyDown);
-  }
+  //   useEffect(() => {
+  //     window.addEventListener('keydown', handleKeyDown);
+  //     window.removeEventListener('keydown', handleKeyDown);
+  // })
 
-  handleKeyDown = e => {
+  // componentDidMount() {
+  //   window.addEventListener('keydown', this.handleKeyDown);
+  // }
+
+  // componentWillUnmount() {
+  //   window.removeEventListener('keydown', handleKeyDown);
+  // }
+
+  const handleKeyDown = e => {
     if (e.code === 'Escape') {
-      this.props.onClick();
+      onClick();
     }
   };
 
-  handleBackdropClick = e => {
+  const handleBackdropClick = e => {
     if (e.currentTarget === e.target) {
-      this.props.onClick();
+      onClick();
     }
   };
 
-  render() {
-    return createPortal(
-      <div className={s.Overlay} onClick={this.handleBackdropClick}>
-        <div className={s.Modal}>
-          <img src={this.props.largeImageURL} alt="" />
-        </div>
-      </div>,
-      modalRoot,
-    );
-  }
-}
+  return createPortal(
+    <div className={s.Overlay} onClick={handleBackdropClick}>
+      <div className={s.Modal}>
+        <img src={largeImageURL} alt="" />
+      </div>
+    </div>,
+    modalRoot,
+  );
+};
+
+Modal.propTypes = {
+  onClick: PropTypes.func.isRequired,
+  largeImageURL: PropTypes.string.isRequired,
+};
 
 export default Modal;

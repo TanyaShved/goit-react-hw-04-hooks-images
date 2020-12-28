@@ -1,25 +1,17 @@
-import { Component } from 'react';
+import { useState } from 'react';
 import PropTypes from 'prop-types';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import s from './Searcbar.module.css';
 
-class Searcbar extends Component {
-  state = {
-    imageName: '',
+const Searcbar = ({ onSubmit }) => {
+  const [imageName, setImageName] = useState('');
+
+  const hendelNameChange = e => {
+    setImageName(e.currentTarget.value.toLowerCase());
   };
 
-  static propTypes = {
-    onSubmit: PropTypes.func.isRequired,
-  };
-
-  hendelNameChange = e => {
-    this.setState({ imageName: e.currentTarget.value.toLowerCase() });
-  };
-
-  hendelSubmit = e => {
-    const { imageName } = this.state;
-
+  const hendelSubmit = e => {
     e.preventDefault();
 
     // проверяем не пустой ли нам инпут
@@ -28,32 +20,33 @@ class Searcbar extends Component {
       return;
     }
 
-    this.props.onSubmit(imageName);
-    this.setState({ imageName: '' });
+    onSubmit(imageName);
+    setImageName('');
   };
 
-  render() {
-    const { imageName } = this.state;
-    return (
-      <header className={s.Searchbar}>
-        <form onSubmit={this.hendelSubmit} className={s.SearchForm}>
-          <button type="submit" className={s.SearchForm_button}>
-            <span className={s.SearchForm_button_label}>Search</span>
-          </button>
+  return (
+    <header className={s.Searchbar}>
+      <form onSubmit={hendelSubmit} className={s.SearchForm}>
+        <button type="submit" className={s.SearchForm_button}>
+          <span className={s.SearchForm_button_label}>Search</span>
+        </button>
 
-          <input
-            className={s.SearchForm_input}
-            type="text"
-            autoComplete="off"
-            autoFocus
-            placeholder="Search images and photos"
-            value={imageName}
-            onChange={this.hendelNameChange}
-          />
-        </form>
-      </header>
-    );
-  }
-}
+        <input
+          className={s.SearchForm_input}
+          type="text"
+          autoComplete="off"
+          autoFocus
+          placeholder="Search images and photos"
+          value={imageName}
+          onChange={hendelNameChange}
+        />
+      </form>
+    </header>
+  );
+};
+
+Searcbar.propTypes = {
+  onSubmit: PropTypes.func.isRequired,
+};
 
 export default Searcbar;

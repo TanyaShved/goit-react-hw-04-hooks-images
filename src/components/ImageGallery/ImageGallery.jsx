@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import PropTypes from 'prop-types';
 import imagesAPI from '../../services/image-api';
 import ImageGalleryItem from '../../components/ImageGalleryItem/ImageGalleryItem';
@@ -14,60 +14,33 @@ const Status = {
   REJECTED: 'rejected',
 };
 
-class ImageGallery extends Component {
-  state = {
-    images: [],
-    error: null,
-    status: Status.IDLE,
-    page: 1,
-  };
+const ImageGallery = ({ imageName, onChangeImage }) => {
+  const [images, setImages] = useState([]);
+  const [error, setError] = useState(null);
+  const [status, setStatus] = useState(Status.IDLE);
+  const [page, setPage] = useState(1);
 
-  static propTypes = {
-    imageName: PropTypes.string.isRequired,
-    onChangeImage: PropTypes.func.isRequired,
-  };
+  const prevPageRef = useRef();
 
-  componentDidMount() {
-    this.props.onChangeImage('');
-    console.log('первий рендер');
-  }
+  useEffect(() => {
+    prevPageRef.current = page;
+  });
 
-  componentDidUpdate(prevProps, prevState) {
-    const { imageName } = this.props;
-    const { page, images } = this.state;
+  const prevPage = prevPageRef.current;
+  console.log(prevPage);
+  console.log(page);
 
-    if (prevProps.imageName !== imageName) {
-      if (page === 1) {
-        this.fetchImageGallery();
-      } else {
-        this.setState({ page: 1, status: Status.PENDING, images: [] });
-      }
-    }
+  useEffect(() => {
+    onChangeImage('');
+  }, [onChangeImage]);
 
-    if (prevState.page !== page) {
-      this.fetchImageGallery();
-    }
-
-    if (prevState.images !== images) {
-      window.scrollTo({
-        top: document.documentElement.scrollHeight,
-        behavior: 'smooth',
-      });
-    }
-  }
-
-  fetchImageGallery = () => {
-    const { imageName } = this.props;
-    const { page } = this.state;
-
+  const fetchImageGallery = useCallback(() => {
     imagesAPI
       .fetchImages(imageName, page)
       .then(images => {
         if (images.hits.length !== 0) {
-          this.setState(prevState => ({
-            images: [...prevState.images, ...images.hits],
-            status: Status.RESOLVED,
-          }));
+          setImages(prevImages => [...prevImages, ...images.hits]);
+          setStatus(Status.RESOLVED);
 
           return;
         }
@@ -75,56 +48,86 @@ class ImageGallery extends Component {
           new Error(`Нет галлереи с таким названием ${imageName}`),
         );
       })
-      .catch(error => this.setState({ error, status: Status.REJECTED }));
-  };
+      .catch(error => {
+        setError(error);
+        setStatus(Status.REJECTED);
+      });
+  }, [imageName, page]);
 
-  onClickLoadMore = () => {
-    this.setState(prevState => ({
-      page: prevState.page + 1,
-    }));
-  };
-
-  render() {
-    const { images, error, status } = this.state;
-
-    if (status === Status.IDLE) {
-      return <h1>Ввидите название</h1>;
+  useEffect(() => {
+    if (!imageName) {
+      return;
     }
-
-    if (status === Status.PENDING) {
-      return (
-        <Loader
-          type="Bars"
-          color="#00BFFF"
-          height={100}
-          width={100}
-          timeout={3000}
-        />
-      );
+    if (page === 1) {
+      fetchImageGallery();
     }
-
-    if (status === Status.REJECTED) {
-      return <h1>{error.message}</h1>;
+    if (prevPage !== page) {
+      fetchImageGallery();
+    } else {
+      setStatus(Status.PENDING);
+      setImages([]);
+      setPage(1);
     }
+  }, [page, fetchImageGallery, imageName, prevPage]);
 
-    if (status === Status.RESOLVED) {
-      return (
-        <>
-          <ul className={s.ImageGallery}>
-            {images.map(({ id, webformatURL, largeImageURL, tags }) => (
-              <ImageGalleryItem
-                key={id}
-                webformatURL={webformatURL}
-                largeImageURL={largeImageURL}
-                tags={tags}
-              />
-            ))}
-          </ul>
-          <Button onClick={this.onClickLoadMore} />
-        </>
-      );
-    }
+  // useEffect(() => {
+  //   if (!imageName) {
+  //      return;
+  //   }
+  //   if (prevPage !== page) {
+  //     fetchImageGallery();
+  //   }
+  // }, [page, fetchImageGallery, imageName, prevPage])
+
+  useEffect(() => {
+    window.scrollTo({
+      top: document.documentElement.scrollHeight,
+      behavior: 'smooth',
+    });
+  }, [images]);
+
+  if (status === Status.IDLE) {
+    return <h1>Ввидите название</h1>;
   }
-}
+
+  if (status === Status.PENDING) {
+    return (
+      <Loader
+        type="Bars"
+        color="#00BFFF"
+        height={100}
+        width={100}
+        timeout={3000}
+      />
+    );
+  }
+
+  if (status === Status.REJECTED) {
+    return <h1>{error.message}</h1>;
+  }
+
+  if (status === Status.RESOLVED) {
+    return (
+      <>
+        <ul className={s.ImageGallery}>
+          {images.map(({ id, webformatURL, largeImageURL, tags }) => (
+            <ImageGalleryItem
+              key={id}
+              webformatURL={webformatURL}
+              largeImageURL={largeImageURL}
+              tags={tags}
+            />
+          ))}
+        </ul>
+        <Button onClick={() => setPage(page + 1)} />
+      </>
+    );
+  }
+};
+
+ImageGallery.propTypes = {
+  imageName: PropTypes.string.isRequired,
+  onChangeImage: PropTypes.func.isRequired,
+};
 
 export default ImageGallery;
