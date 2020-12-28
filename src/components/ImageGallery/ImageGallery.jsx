@@ -112,6 +112,10 @@ const ImageGallery = ({ imageName, page, images, setImages, setPage }) => {
 
 ImageGallery.propTypes = {
   imageName: PropTypes.string.isRequired,
+  images: PropTypes.array.isRequired,
+  page: PropTypes.number.isRequired,
+  setImages: PropTypes.func.isRequired,
+  setPage: PropTypes.func.isRequired,
 };
 
 export default ImageGallery;
