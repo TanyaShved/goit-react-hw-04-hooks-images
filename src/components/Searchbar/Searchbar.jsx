@@ -7,11 +7,11 @@ import s from './Searcbar.module.css';
 const Searcbar = ({ onSubmit }) => {
   const [imageName, setImageName] = useState('');
 
-  const hendelNameChange = e => {
+  const handelNameChange = e => {
     setImageName(e.currentTarget.value.toLowerCase());
   };
 
-  const hendelSubmit = e => {
+  const handelSubmit = e => {
     e.preventDefault();
 
     // проверяем не пустой ли нам инпут
@@ -26,7 +26,7 @@ const Searcbar = ({ onSubmit }) => {
 
   return (
     <header className={s.Searchbar}>
-      <form onSubmit={hendelSubmit} className={s.SearchForm}>
+      <form onSubmit={handelSubmit} className={s.SearchForm}>
         <button type="submit" className={s.SearchForm_button}>
           <span className={s.SearchForm_button_label}>Search</span>
         </button>
@@ -38,7 +38,7 @@ const Searcbar = ({ onSubmit }) => {
           autoFocus
           placeholder="Search images and photos"
           value={imageName}
-          onChange={hendelNameChange}
+          onChange={handelNameChange}
         />
       </form>
     </header>

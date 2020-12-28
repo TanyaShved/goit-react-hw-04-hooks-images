@@ -19,19 +19,6 @@ const Modal = ({ onClick, largeImageURL }) => {
     };
   });
 
-  //   useEffect(() => {
-  //     window.addEventListener('keydown', handleKeyDown);
-  //     window.removeEventListener('keydown', handleKeyDown);
-  // })
-
-  // componentDidMount() {
-  //   window.addEventListener('keydown', this.handleKeyDown);
-  // }
-
-  // componentWillUnmount() {
-  //   window.removeEventListener('keydown', handleKeyDown);
-  // }
-
   const handleKeyDown = e => {
     if (e.code === 'Escape') {
       onClick();
