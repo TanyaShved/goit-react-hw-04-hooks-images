@@ -19,57 +19,37 @@ const ImageGallery = ({ imageName, page, images, setImages, setPage }) => {
   const [status, setStatus] = useState(Status.IDLE);
 
   useEffect(() => {
-    if (imageName === '') {
+    if (!imageName) {
       return;
     }
 
     setStatus(Status.PENDING);
 
-    const fetchImageGallery = () => {
-      imagesAPI
-        .fetchImages(imageName, page)
-        .then(images => {
-          if (images.hits.length !== 0) {
-            setImages(prevImages => [...prevImages, ...images.hits]);
-            setStatus(Status.RESOLVED);
-            return;
-          }
-          return Promise.reject(
-            new Error(`Нет галлереи с таким названием ${imageName}`),
-          );
-        })
-        .catch(error => {
-          setError(error);
-          setStatus(Status.REJECTED);
-        });
-    };
-    if (imageName) {
-      fetchImageGallery();
-    }
+    imagesAPI
+      .fetchImages(imageName, page)
+      .then(images => {
+        if (images.hits.length !== 0) {
+          setImages(prevImages => [...prevImages, ...images.hits]);
+          setStatus(Status.RESOLVED);
+          return;
+        }
+        return Promise.reject(
+          new Error(`Нет галлереи с таким названием ${imageName}`),
+        );
+      })
+      .then(() => {
+        if (page !== 1) {
+          window.scrollTo({
+            top: document.documentElement.scrollHeight,
+            behavior: 'smooth',
+          });
+        }
+      })
+      .catch(error => {
+        setError(error);
+        setStatus(Status.REJECTED);
+      });
   }, [page, setImages, imageName]);
-
-  useEffect(() => {
-    window.scrollTo({
-      top: document.documentElement.scrollHeight,
-      behavior: 'smooth',
-    });
-  });
-
-  if (status === Status.IDLE) {
-    return <h1>Ввидите название</h1>;
-  }
-
-  if (status === Status.PENDING) {
-    return (
-      <Loader
-        type="Bars"
-        color="#00BFFF"
-        height={100}
-        width={100}
-        timeout={3000}
-      />
-    );
-  }
 
   if (status === Status.IDLE) {
     return <h1>Ввидите название</h1>;
