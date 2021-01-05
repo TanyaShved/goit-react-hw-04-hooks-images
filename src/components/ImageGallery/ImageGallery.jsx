@@ -22,33 +22,32 @@ const ImageGallery = ({ imageName, page, images, setImages, setPage }) => {
     if (!imageName) {
       return;
     }
+    if (!imageName && page !== 1) {
+      setStatus(Status.PENDING);
+    }
 
-    setStatus(Status.PENDING);
-
-    imagesAPI
-      .fetchImages(imageName, page)
-      .then(images => {
-        if (images.hits.length !== 0) {
-          setImages(prevImages => [...prevImages, ...images.hits]);
-          setStatus(Status.RESOLVED);
-          return;
-        }
-        return Promise.reject(
-          new Error(`Нет галлереи с таким названием ${imageName}`),
-        );
-      })
-      .then(() => {
-        if (page !== 1) {
-          window.scrollTo({
-            top: document.documentElement.scrollHeight,
-            behavior: 'smooth',
-          });
-        }
-      })
-      .catch(error => {
-        setError(error);
-        setStatus(Status.REJECTED);
-      });
+    if (page) {
+      imagesAPI
+        .fetchImages(imageName, page)
+        .then(images => {
+          if (images.hits.length !== 0) {
+            setImages(prevImages => [...prevImages, ...images.hits]);
+            setStatus(Status.RESOLVED);
+            window.scrollTo({
+              top: document.documentElement.scrollHeight,
+              behavior: 'smooth',
+            });
+            return;
+          }
+          return Promise.reject(
+            new Error(`Нет галлереи с таким названием ${imageName}`),
+          );
+        })
+        .catch(error => {
+          setError(error);
+          setStatus(Status.REJECTED);
+        });
+    }
   }, [page, setImages, imageName]);
 
   if (status === Status.IDLE) {
